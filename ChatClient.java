@@ -25,7 +25,10 @@ public class ChatClient {
 
     // Buffer para enviar a mensagem para o servido
     static private ByteBuffer buffer;
-    // Buffer para receber a mensagem do servidor
+
+    // Estado do utilizador
+    static private int state;
+    //init: 0; outside: 1;
 
 
 
@@ -77,10 +80,12 @@ public class ChatClient {
         try{
             sc = SocketChannel.open();
             sc.connect(new InetSocketAddress(server, port));
+            printMessage("Connected to: " + server + ". At port: " + port + "\n");
 
         }
         catch( IOException ie){
             System.err.println(ie);
+            printMessage("Error connecting to server. Please retart program.\n");
         }
 
     }
@@ -91,28 +96,35 @@ public class ChatClient {
     public void newMessage(String message) throws IOException {
         // PREENCHER AQUI com código que envia a mensagem ao servidor
 
-        // Envia a mensagem para o servidor
-        message+="\n";
-        buffer = ByteBuffer.wrap(message.getBytes());
-        sc.write(buffer);
-        buffer.clear();
-        
-        // Receber a mensagem do sevidor 
-        ByteBuffer receiverBuffer = ByteBuffer.allocate(16384);
-        sc.read(receiverBuffer);
-        receiverBuffer.flip();
-        String serverMessage = new String(receiverBuffer.array()).trim();
-        serverMessage+="\n";
+        try{
+            // Envia a mensagem para o servidor
+            buffer = ByteBuffer.wrap(message.getBytes());
+            sc.write(buffer);
+            buffer.clear();
 
-        // Imprime a mensagem do servidor para o chatArea
-        printMessage(serverMessage);
-        
+            // Receber a mensagem do sevidor 
+            ByteBuffer receiverBuffer = ByteBuffer.allocate(16384);
+            sc.read(receiverBuffer);
+            receiverBuffer.flip();
+            String serverMessage = new String(receiverBuffer.array()).trim();
+            serverMessage+="\n";
+
+            // Imprime a mensagem do servidor para o chatArea
+            printMessage(serverMessage);
+        }
+        catch(IOException ie){
+            printMessage("Error sending message to server. Ending connection. Please retart program.\n");
+            try{
+                sc.close();
+            }catch(IOException ie2) { printMessage("Error closing socket.\n"); }
+        }
     }
 
     
     // Método principal do objecto
     public void run() throws IOException {
         // PREENCHER AQUI
+        state = 0;
         while (true) {
             chatBox.requestFocusInWindow();
         }

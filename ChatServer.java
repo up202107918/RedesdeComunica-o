@@ -13,6 +13,7 @@ public class ChatServer
     // Decoder for incoming text -- assume UTF-8
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetDecoder decoder = charset.newDecoder();
+    static private final List<String> nomes = new ArrayList<String>();
 
 
     static public void main( String args[] ) throws Exception {
@@ -108,11 +109,10 @@ public class ChatServer
                                 sc.close();
                             } catch( IOException ie2 ) { System.out.println( ie2 ); }
 
-                            System.out.println( "Closed "+sc );
+                            System.out.println( "Closed " + sc );
                         }
                     }
                 }
-
                 // We remove the selected keys, because we've dealt with them.
                 keys.clear();
             }
@@ -136,8 +136,20 @@ public class ChatServer
 
         // Decode and print the message to stdout
         String message = decoder.decode(buffer).toString().trim();
-        System.out.print( message );
+        System.out.println( message );
+        String[] messageWords = message.split(" ");
 
+        if(messageWords[0].equals("/nick")){
+            message = "";
+            for(int i = 1; i < messageWords.length; i++){
+                message += messageWords[i] + " ";
+            }
+            if(disponivel(message)){
+                message += "joined!";
+            }
+            else
+                message = "Name not available";
+        }
         // Clear the buffer before writing the message back to the client
         buffer.clear();
         buffer.put(message.getBytes());
@@ -145,6 +157,15 @@ public class ChatServer
         // Send the data back in the socket
         sc.write(buffer);
 
+        return true;
+    }
+
+    static boolean disponivel(String nome){
+        for(String s : nomes){
+            if(s.equals(nome))
+                return false;
+        }
+        nomes.add(nome);
         return true;
     }
 }
