@@ -13,12 +13,15 @@ public class ChatServer
     // Decoder for incoming text -- assume UTF-8
     static private final Charset charset = Charset.forName("UTF8");
     static private final CharsetDecoder decoder = charset.newDecoder();
+
+    // Lista para guardar nomes de utilizador
     static private final List<String> nomes = new ArrayList<String>();
 
 
     static public void main( String args[] ) throws Exception {
         // Parse port from command line
         int port = Integer.parseInt( args[0] );
+        int clientCounter = 0;
 
         try {
             // Instead of creating a ServerSocket, create a ServerSocketChannel
@@ -75,6 +78,12 @@ public class ChatServer
                         // Register it with the selector, for reading
                         sc.register( selector, SelectionKey.OP_READ );
 
+                        clientCounter ++;
+                        buffer.clear();
+                        buffer.put(("Client nº: " + clientCounter).getBytes());
+                        buffer.flip();
+                        sc.write(buffer);
+
                     } else if (key.isReadable()) {
 
                         SocketChannel sc = null;
@@ -83,7 +92,7 @@ public class ChatServer
 
                             // It's incoming data on a connection -- process it
                             sc = (SocketChannel)key.channel();
-                            boolean ok = processInput( sc );
+                            boolean ok = processInput( sc, clientCounter );
 
                             // If the connection is dead, remove it from the selector
                             // and close it
@@ -94,6 +103,7 @@ public class ChatServer
                                 try {
                                     s = sc.socket();
                                     System.out.println( "Closing connection to "+s );
+                                    clientCounter --;
                                     s.close();
                                 } catch( IOException ie ) {
                                     System.err.println( "Error closing socket "+s+": "+ie );
@@ -123,7 +133,7 @@ public class ChatServer
 
 
     // Lê a mensagem recebida e imprime no stdout, bem como volta a enviar para o cliente
-    static private boolean processInput( SocketChannel sc ) throws IOException {
+    static private boolean processInput( SocketChannel sc, int clientCounter ) throws IOException {
         // Read the message to the buffer
         buffer.clear();
         sc.read( buffer );
@@ -135,21 +145,25 @@ public class ChatServer
         }
 
         // Decode and print the message to stdout
-        String message = decoder.decode(buffer).toString().trim();
+        String message = decoder.decode(buffer).toString().trim(); //message = texto + estado + id
         System.out.println( message );
-        String[] messageWords = message.split(" ");
 
-        if(messageWords[0].equals("/nick")){
-            message = "";
-            for(int i = 1; i < messageWords.length; i++){
-                message += messageWords[i] + " ";
-            }
-            if(disponivel(message)){
-                message += "joined!";
-            }
-            else
-                message = "Name not available";
+        // Dividir a mensagem por palavras
+        String[] messageWords = message.split(" ");
+        int estado = Integer.parseInt(messageWords[messageWords.length - 2]);
+        int id = Integer.parseInt(messageWords[messageWords.length - 1]);
+
+        // Processar mensagem to utilizador
+        message = processMessage(messageWords, estado, id);
+
+        // Caso o cliente tenha dado o comando bye
+        if(Integer.parseInt(message.split(" ")[message.split(" ").length - 1]) == -1){
+            clientCounter --;
+            if(nomes.size() != 0)
+                nomes.remove(id-1);
         }
+
+
         // Clear the buffer before writing the message back to the client
         buffer.clear();
         buffer.put(message.getBytes());
@@ -165,7 +179,55 @@ public class ChatServer
             if(s.equals(nome))
                 return false;
         }
-        nomes.add(nome);
         return true;
+    }
+
+    static String processMessage(String[] messageWords, int estado, int id){
+
+        String message = "";
+        String command = messageWords[0];
+
+        // Comandos
+        if(command.equals("/nick")){
+            for(int i = 1; i < messageWords.length - 2; i++){
+                message += messageWords[i] + " ";
+            }
+            if(disponivel(message)){
+                if(estado == 0){
+                    nomes.add(message);
+                    message += "joined! ";
+                    estado = 1;
+                }
+                else{
+                    System.out.println(nomes.size());
+                    String nome_antigo = nomes.get(id-1);
+                    nomes.add(id-1, message);
+                    message = "NEWNICK " + nome_antigo + message + " ";
+                }
+            }
+            else
+                message = "Name not available ";
+        }
+
+        else if(command.equals("/join")){
+            for(int i = 1; i < messageWords.length - 2; i++){
+                message += messageWords[i] + " ";
+            }
+            if(estado == 1){}
+            else if(estado  == 2){}
+        }
+
+        else if(command.equals("/leave")){}
+
+        else if(command.equals("/bye"))
+            estado = -1;
+
+        else{
+            for(int i = 0; i < messageWords.length - 2; i++){
+                message += messageWords[i] + " ";
+            }
+        }
+
+        return message + estado;
     }
 }

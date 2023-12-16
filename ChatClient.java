@@ -6,7 +6,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.nio.channels.*;
 import java.nio.*;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.*;
 
 
 public class ChatClient {
@@ -16,6 +16,10 @@ public class ChatClient {
     private JTextField chatBox = new JTextField();
     private JTextArea chatArea = new JTextArea();
     // --- Fim das variáveis relacionadas coma interface gráfica
+    
+    // Decoder
+    static private final Charset charset = Charset.forName("UTF8");
+    static private final CharsetDecoder decoder = charset.newDecoder();
 
     // Se for necessário adicionar variáveis ao objecto ChatClient, devem
     // ser colocadas aqui
@@ -23,13 +27,18 @@ public class ChatClient {
     //criar a Socket para se ligar ao servidor
     static private SocketChannel sc;
 
-    // Buffer para enviar a mensagem para o servido
-    static private ByteBuffer buffer;
+    // Buffer para enviar dados. O tamanho é o mesmo do servidor
+    static private final ByteBuffer buffer = ByteBuffer.allocate(16384);
 
+    // Identificador do cliente
+    static private int id;
+    
     // Estado do utilizador
     static private int state;
     //init: 0; outside: 1;
 
+    // Nome do utilizador 
+    // static private String nome;
 
 
     
@@ -82,6 +91,19 @@ public class ChatClient {
             sc.connect(new InetSocketAddress(server, port));
             printMessage("Connected to: " + server + ". At port: " + port + "\n");
 
+            //receber numero de cliente
+            buffer.clear();
+            sc.read(buffer);
+            buffer.flip();
+
+            // Imprimir numero de cliente na gui
+            String serverMessage = decoder.decode(buffer).toString().trim();
+            String[] serverWords = serverMessage.split(" ");
+            id = Integer.parseInt(serverWords[serverWords.length - 1]);
+            serverMessage+="\n";
+
+            // Imprime a mensagem do servidor para o chatArea
+            printMessage(serverMessage);
         }
         catch( IOException ie){
             System.err.println(ie);
@@ -97,16 +119,34 @@ public class ChatClient {
         // PREENCHER AQUI com código que envia a mensagem ao servidor
 
         try{
-            // Envia a mensagem para o servidor
-            buffer = ByteBuffer.wrap(message.getBytes());
-            sc.write(buffer);
+            // Envia a mensagem, com o estado e o id, para o servidor
+            //buffer = ByteBuffer.wrap(message.getBytes());
+            message += " " + state + " " + id;
             buffer.clear();
+            buffer.put(message.getBytes());
+            buffer.flip(); // Como o buffer.put() coloca dados no buffer como buffer.read() é preciso dar flip
+            sc.write(buffer);
 
-            // Receber a mensagem do sevidor 
-            ByteBuffer receiverBuffer = ByteBuffer.allocate(16384);
-            sc.read(receiverBuffer);
-            receiverBuffer.flip();
-            String serverMessage = new String(receiverBuffer.array()).trim();
+            // Receber a mensagem do servidor
+            // Mensagem do tipo: Texto + " " + estado
+            buffer.clear();
+            sc.read(buffer);
+            buffer.flip();
+            String serverMessage = decoder.decode(buffer).toString().trim();
+
+            // Processar resposta
+            String[] serverMessageWords = serverMessage.split(" ");
+            state = Integer.parseInt(serverMessageWords[serverMessageWords.length - 1]);
+            if(state == -1){
+                printMessage("Logged off. Good bye");
+                try{
+                    sc.close();
+                }catch(IOException ie2) { printMessage("Error closing socket.\n"); }
+            }
+            serverMessage = "";
+            for(int i = 0; i < serverMessageWords.length - 1; i++)
+                serverMessage += serverMessageWords[i] + " ";
+
             serverMessage+="\n";
 
             // Imprime a mensagem do servidor para o chatArea
@@ -117,6 +157,15 @@ public class ChatClient {
             try{
                 sc.close();
             }catch(IOException ie2) { printMessage("Error closing socket.\n"); }
+        }
+        catch (Exception e) {
+            // Handle other exceptions
+            printMessage("An unexpected error occurred. Ending connection. Please restart the program.\n");
+            try {
+                sc.close();
+            } catch (IOException e2) {
+                printMessage("Error closing socket.\n");
+            }
         }
     }
 
