@@ -1,5 +1,2 @@
-- Acabar os comandos
-- Implementar melhor a geraçao de IDs para os clientes neste momento é possível
-que dois clientes diferentes tenham o mesmo ID (para recriar cria dois clientes,
-desliga o primeiro, e cria um 3º cliente. Isso vai fazer com que os dois 
-clientes ligados tenham o mesmo ID.)
+- Fazer com o cliente consiga receber mensagens do server e enviar ao mesmo tempo
+(Sérgio eu mudei algumas partes mas foi só no ficheiro Cliente e Servidor)
