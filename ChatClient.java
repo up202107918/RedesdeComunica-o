@@ -101,7 +101,7 @@ public class ChatClient {
         }
         catch(IOException ie) {
             System.err.println(ie);
-            printMessage("Error connecting to server. Please restart program.\n");
+            printMessage("Error connecting to server. Please retart program.\n");
         }
 
     }

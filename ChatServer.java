@@ -185,14 +185,14 @@ public class ChatServer
         }
 
         // Decode and print the message to stdout
-        String message = decoder.decode(buffer).toString().trim();
+        String message = decoder.decode(buffer).toString();
         Set<Integer> newset = new HashSet<>();
         for (int i = 0; i < message.length(); i++) {
             if (message.charAt(i) == '\n') {
                 newset.add(i+1);
             }
         }
-
+ 
         // Dividir a mensagem por palavras
         message = message.replaceAll("[\\n\\t]", " ").substring(0, message.length() - 1);
         String[] messageWords = message.split(" ");
@@ -201,72 +201,72 @@ public class ChatServer
         for (int i = 0; i < messageWords.length; i++) {
             switch (messageWords[i]) {
                 case "/nick":
-                if (i == messageWords.length - 1) {
-                    errorMessage(sc);
-                    break;
-                }
-                processMessage(sc, messageWords[i], keysource, messageWords[i+1], "");
-                charCount += messageWords[i].length() + 1;
-                charCount += messageWords[i + 1].length() + 1;
-                i++;
-                break;
-                case "/join":
-                if (i == messageWords.length - 1) {
-                    errorMessage(sc);
-                    break;
-                }
-                processMessage(sc, messageWords[i], keysource, messageWords[i+1], "");
-                charCount += messageWords[i].length() + 1;
-                charCount += messageWords[i + 1].length() + 1;
-                i++;
-                break;
-                case "/priv":
-                if ((i == messageWords.length - 1) || (i == messageWords.length - 2)) {
-                    errorMessage(sc);
-                    break;
-                }
-                charCount += messageWords[i].length() + messageWords[i + 1].length() + 2;
-                int words = 0;
-                for (int j = i + 2; j < messageWords.length; j++, words++) {
-                    if (!newset.contains(charCount + 1) || messageWords[j].charAt(0) != '/') {
-                        if (!msg.isEmpty())
-                        msg += " " + messageWords[j];
-                        else
-                        msg = messageWords[j];
-                        charCount += messageWords[j].length() + 1;
-                        if (newset.contains(charCount + 1)) 
+                    if (i == messageWords.length - 1) {
+                        errorMessage(sc);
                         break;
                     }
-                }
-                processMessage(sc, messageWords[i], keysource, messageWords[i + 1], msg);
-                msg = "";
-                i += words + 2;
-                break;
-                case "/leave":
-                processMessage(sc, messageWords[i], keysource, "", "");
-                charCount += messageWords[i].length() + 1;
-                break;
-                case "/bye":
-                processMessage(sc, messageWords[i], keysource, "", "");
-                charCount += messageWords[i].length() + 1;
-                break;
-                default:
-                charCount += messageWords[i].length() + 1;
-                if ((i < messageWords.length - 1) && (messageWords[i + 1].charAt(0) != '/')) {
-                    if (!msg.isEmpty())
-                    msg += " " + messageWords[i];
-                    else
-                    msg = messageWords[i];
-                } 
-                else {
-                    if (!msg.isEmpty())
-                    msg += " " + messageWords[i];
-                    else
-                    msg = messageWords[i];
-                    processMessage(sc, msg, keysource, "", "");
+                    processMessage(sc, messageWords[i], keysource, messageWords[i+1], "");
+                    charCount += messageWords[i].length() + 1;
+                    charCount += messageWords[i + 1].length() + 1;
+                    i++;
+                    break;
+                case "/join":
+                    if (i == messageWords.length - 1) {
+                        errorMessage(sc);
+                        break;
+                    }
+                    processMessage(sc, messageWords[i], keysource, messageWords[i+1], "");
+                    charCount += messageWords[i].length() + 1;
+                    charCount += messageWords[i + 1].length() + 1;
+                    i++;
+                    break;
+                case "/priv":
+                    if ((i == messageWords.length - 1) || (i == messageWords.length - 2)) {
+                        errorMessage(sc);
+                        break;
+                    }
+                    charCount += messageWords[i].length() + messageWords[i + 1].length() + 2;
+                    int words = 0;
+                    for (int j = i + 2; j < messageWords.length; j++, words++) {
+                        if (!newset.contains(charCount + 1) || messageWords[j].charAt(0) != '/') {
+                            if (!msg.isEmpty())
+                                msg += " " + messageWords[j];
+                            else
+                                msg = messageWords[j];
+                            charCount += messageWords[j].length() + 1;
+                            if (newset.contains(charCount + 1)) 
+                                break;
+                        }
+                    }
+                    processMessage(sc, messageWords[i], keysource, messageWords[i + 1], msg);
                     msg = "";
-                }
-                break;
+                    i += words + 2;
+                    break;
+                case "/leave":
+                    processMessage(sc, messageWords[i], keysource, "", "");
+                    charCount += messageWords[i].length() + 1;
+                    break;
+                case "/bye":
+                    processMessage(sc, messageWords[i], keysource, "", "");
+                    charCount += messageWords[i].length() + 1;
+                    break;
+                default:
+                    charCount += messageWords[i].length() + 1;
+                    if ((i < messageWords.length - 1) && (messageWords[i + 1].charAt(0) != '/')) {
+                        if (!msg.isEmpty())
+                            msg += " " + messageWords[i];
+                        else
+                            msg = messageWords[i];
+                    } 
+                    else {
+                        if (!msg.isEmpty())
+                            msg += " " + messageWords[i];
+                        else
+                            msg = messageWords[i];
+                        processMessage(sc, msg, keysource, "", "");
+                        msg = "";
+                    }
+                    break;
             }
         }
         return true;
@@ -275,7 +275,7 @@ public class ChatServer
     static boolean disponivel(String nome) {
         for(String s : nomes) {
             if (s.equals(nome))
-            return false;
+                return false;
         }
         return true;
     }
@@ -285,44 +285,44 @@ public class ChatServer
         buffer.put("ERROR\n".getBytes(charset));
         buffer.flip();
         sc.write(buffer);
-    }
+  }
 
     static private void processMessage(SocketChannel sc, String command, SelectionKey keysource, String nick, String message) throws IOException {
         // Comandos
         if(command.charAt(0) == '/' && command.charAt(1) != '/') {
             switch (command) {
                 case "/nick":
-                if (nick.isEmpty() || !disponivel(nick)) {
-                    errorMessage(sc);
-                    return;
-                }
-                processNick(sc,keysource,nick);
-                break;
+                    if (nick.isEmpty() || !disponivel(nick)) {
+                        errorMessage(sc);
+                        return;
+                    }
+                    processNick(sc,keysource,nick);
+                    break;
                 case "/join":
-                if (nick.isEmpty()) {
-                    errorMessage(sc);
-                    return;
-                }
-                processJoin(sc, keysource, nick);
-                break;
+                    if (nick.isEmpty()) {
+                        errorMessage(sc);
+                        return;
+                    }
+                    processJoin(sc, keysource, nick);
+                    break;
                 case "/priv":
-                if (message.isEmpty() || nick.isEmpty()) {
-                    errorMessage(sc);
-                    return;
-                }
-                processPriv(sc, keysource, nick, message);
-                break;
+                    if (message.isEmpty() || nick.isEmpty()) {
+                        errorMessage(sc);
+                        return;
+                    }
+                    processPriv(sc, keysource, nick, message);
+                    break;
                 case "/leave":
-                processLeave(sc, keysource, false);
-                break;
+                    processLeave(sc, keysource, false);
+                    break;
                 case "/bye":
-                processBye(sc, keysource, false);
-                break;
+                    processBye(sc, keysource, false);
+                    break;
             }
         }
         else {
             if (command.charAt(0) == '/')
-            command = command.substring(1, command.length());
+                command = command.substring(1, command.length());
             message(sc, keysource, command);
         }
     }
@@ -330,20 +330,20 @@ public class ChatServer
     static private void message(SocketChannel sc, SelectionKey keySource, String message) throws IOException {
         User sender = (User) keySource.attachment();
         if (sender.estado != State.INSIDE) {
-            errorMessage(sc);
-            return;
+          errorMessage(sc);
+          return;
         }
         // System.out.println(sender.name + " " + sender.room + " " + sender.state);
         for (String user : salaMap.get(sender.room).RoomUsers) {
-            if (sender.nome == user)
+          if (sender.nome == user)
             continue;
-            User cur = userMap.get(user);
-            buffer.clear();
-            buffer.put(("MESSAGE " + sender.nome + " " + message + "\n").getBytes(charset));
-            buffer.flip();
-            cur.sc.write(buffer);
+          User cur = userMap.get(user);
+          buffer.clear();
+          buffer.put(("MESSAGE " + sender.nome + " " + message + "\n").getBytes(charset));
+          buffer.flip();
+          cur.sc.write(buffer);
         }
-    }
+      }
 
     static private void processNick(SocketChannel sc, SelectionKey keySource, String newName) throws IOException {
         User atual = (User) keySource.attachment();
@@ -361,7 +361,7 @@ public class ChatServer
             salaMap.put(atual.room, updateRoom);
             for (String user : salaMap.get(atual.room).RoomUsers) {
                 if (atual.nome == user)
-                continue;
+                    continue;
                 User cur = userMap.get(user);
                 buffer.clear();
                 buffer.put(("NEWNICK " + oldNick + " " + atual.nome + "\n").getBytes(charset));
@@ -369,9 +369,8 @@ public class ChatServer
                 cur.sc.write(buffer);
             }
         }
-        if (atual.estado == State.INIT){
+        if (atual.estado == State.INIT)
             atual.estado = State.OUTSIDE;
-        }
         userMap.put(atual.nome, atual);
         buffer.clear();
         buffer.put("OK\n".getBytes(charset));
@@ -396,7 +395,7 @@ public class ChatServer
         if (!salaMap.keySet().contains(roomName)) {
             Sala newRoom = new Sala(roomName);
             newRoom.updateRoom(joinin.nome);
-            salaMap.put(roomName, newRoom);
+        salaMap.put(roomName, newRoom);
         }
         else {
             Sala joiningRoom = salaMap.get(roomName);
@@ -455,7 +454,7 @@ public class ChatServer
     static private void processBye(SocketChannel sc, SelectionKey keySource, Boolean dc) throws IOException {
         User u = (User) keySource.attachment();
         if (u.estado == State.INSIDE)
-        processLeave(sc, keySource, true);
+            processLeave(sc, keySource, true);
         userMap.remove(u.nome);
         if (!dc) {
             buffer.clear();
@@ -483,7 +482,7 @@ public class ChatServer
             buffer.flip();
             recUser.sc.write(buffer);
         }
-    }
+}
 
     static private void closeConnection(Socket s, SocketChannel sc) {
         try {
@@ -494,12 +493,5 @@ public class ChatServer
         catch (IOException ie) {
             System.err.println("Error closing socket " + s + ": " + ie);
         }
-    }
-
-    static private void sendMessage(String messagem, SocketChannel sc) throws IOException{
-        buffer.clear();
-        buffer.put(messagem.getBytes());
-        buffer.flip();
-        sc.write(buffer);
     }
 }
