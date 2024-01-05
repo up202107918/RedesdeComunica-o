@@ -1,3 +1,5 @@
+// FICHEIRO DE TESTE
+
 import java.io.*;
 import java.net.*;
 import java.nio.*;
@@ -41,7 +43,7 @@ enum State {
     INIT,INSIDE,OUTSIDE;
 }
 
-public class ChatServer
+public class Servidor
 {
     // A pre-allocated buffer for the received data
     static private final ByteBuffer buffer = ByteBuffer.allocate( 16384 );
@@ -184,7 +186,7 @@ public class ChatServer
             return false;
         }
 
-        // Decode and print the message to stdout
+        // Decode the message
         String message = decoder.decode(buffer).toString().trim();
         Set<Integer> newset = new HashSet<>();
         for (int i = 0; i < message.length(); i++) {
@@ -194,81 +196,80 @@ public class ChatServer
         }
 
         // Dividir a mensagem por palavras
-        message = message.replaceAll("[\\n\\t]", " ").substring(0, message.length() - 1);
         String[] messageWords = message.split(" ");
         String msg = "";
-        int charCount = -1;
-        for (int i = 0; i < messageWords.length; i++) {
-            switch (messageWords[i]) {
-                case "/nick":
-                if (i == messageWords.length - 1) {
+        switch(messageWords[0]){
+            case "/nick":
+                if (messageWords.length == 1) {
                     errorMessage(sc);
                     break;
                 }
-                processMessage(sc, messageWords[i], keysource, messageWords[i+1], "");
-                charCount += messageWords[i].length() + 1;
-                charCount += messageWords[i + 1].length() + 1;
-                i++;
+                processMessage(sc, messageWords[0], keysource, messageWords[1], "");
                 break;
-                case "/join":
-                if (i == messageWords.length - 1) {
+            case "/join":
+                if (messageWords.length == 1) {
                     errorMessage(sc);
                     break;
                 }
-                processMessage(sc, messageWords[i], keysource, messageWords[i+1], "");
-                charCount += messageWords[i].length() + 1;
-                charCount += messageWords[i + 1].length() + 1;
-                i++;
+                processMessage(sc, messageWords[0], keysource, messageWords[1], "");
                 break;
-                case "/priv":
-                if ((i == messageWords.length - 1) || (i == messageWords.length - 2)) {
-                    errorMessage(sc);
-                    break;
-                }
-                charCount += messageWords[i].length() + messageWords[i + 1].length() + 2;
-                int words = 0;
-                for (int j = i + 2; j < messageWords.length; j++, words++) {
-                    if (!newset.contains(charCount + 1) || messageWords[j].charAt(0) != '/') {
-                        if (!msg.isEmpty())
-                        msg += " " + messageWords[j];
-                        else
-                        msg = messageWords[j];
-                        charCount += messageWords[j].length() + 1;
-                        if (newset.contains(charCount + 1)) 
-                        break;
-                    }
-                }
-                processMessage(sc, messageWords[i], keysource, messageWords[i + 1], msg);
-                msg = "";
-                i += words + 2;
+
+            case "/leave":
+                processMessage(sc, messageWords[0], keysource, "", "");
                 break;
-                case "/leave":
-                processMessage(sc, messageWords[i], keysource, "", "");
-                charCount += messageWords[i].length() + 1;
+
+            case "/bye":
+                processMessage(sc, messageWords[0], keysource, "", "");
                 break;
-                case "/bye":
-                processMessage(sc, messageWords[i], keysource, "", "");
-                charCount += messageWords[i].length() + 1;
-                break;
-                default:
-                charCount += messageWords[i].length() + 1;
-                if ((i < messageWords.length - 1) && (messageWords[i + 1].charAt(0) != '/')) {
-                    if (!msg.isEmpty())
-                    msg += " " + messageWords[i];
-                    else
-                    msg = messageWords[i];
-                } 
-                else {
-                    if (!msg.isEmpty())
-                    msg += " " + messageWords[i];
-                    else
-                    msg = messageWords[i];
-                    processMessage(sc, msg, keysource, "", "");
-                    msg = "";
-                }
-                break;
-            }
+
         }
+
+        
+        //for (int i = 0; i < messageWords.length; i++) {
+        //    switch (messageWords[i]) {
+        //        /*
+        //        case "/priv":
+        //        if ((i == messageWords.length - 1) || (i == messageWords.length - 2)) {
+        //            errorMessage(sc);
+        //            break;
+        //        }
+        //        charCount += messageWords[i].length() + messageWords[i + 1].length() + 2;
+        //        int words = 0;
+        //        for (int j = i + 2; j < messageWords.length; j++, words++) {
+        //            if (!newset.contains(charCount + 1) || messageWords[j].charAt(0) != '/') {
+        //                if (!msg.isEmpty())
+        //                msg += " " + messageWords[j];
+        //                else
+        //                msg = messageWords[j];
+        //                charCount += messageWords[j].length() + 1;
+        //                if (newset.contains(charCount + 1)) 
+        //                break;
+        //            }
+        //        }
+        //        processMessage(sc, messageWords[i], keysource, messageWords[i + 1], msg);
+        //        msg = "";
+        //        i += words + 2;
+        //        break;
+        //        */
+        //        default:
+        //        //charCount += messageWords[i].length() + 1;
+        //        if ((i < messageWords.length - 1) && (messageWords[i + 1].charAt(0) != '/')) {
+        //            if (!msg.isEmpty())
+        //            msg += " " + messageWords[i];
+        //            else
+        //            msg = messageWords[i];
+        //        } 
+        //        else {
+        //            if (!msg.isEmpty())
+        //            msg += " " + messageWords[i];
+        //            else
+        //            msg = messageWords[i];
+        //            processMessage(sc, msg, keysource, "", "");
+        //            msg = "";
+        //        }
+        //        break;
+        //    }
+        //}
         return true;
     }
 
@@ -313,11 +314,11 @@ public class ChatServer
                 processPriv(sc, keysource, nick, message);
                 break;
                 case "/leave":
-                processLeave(sc, keysource, false);
-                break;
+                    processLeave(sc, keysource, false);
+                    break;
                 case "/bye":
-                processBye(sc, keysource, false);
-                break;
+                    processBye(sc, keysource, false);
+                    break;
             }
         }
         else {
