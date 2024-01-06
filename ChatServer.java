@@ -114,13 +114,6 @@ public class ChatServer
 
                         // Register it with the selector, for reading
                         sc.register(selector, SelectionKey.OP_READ, new User("",sc));
-
-                        //clientCounter ++;
-                        //buffer.clear();
-                        //buffer.put(("Client nº: " + clientCounter).getBytes());
-                        //buffer.flip();
-                        //sc.write(buffer);
-
                     } 
                     else if (key.isReadable()) {
                         SocketChannel sc = null;
@@ -136,14 +129,6 @@ public class ChatServer
                                 Socket s = null;
                                 processBye(sc, key, true);
                                 closeConnection(s, sc);
-                                /*try {
-                                    s = sc.socket();
-                                    System.out.println( "Closing connection to "+s );
-                                    //clientCounter --;
-                                    s.close();
-                                } catch(IOException ie) {
-                                    System.err.println( "Error closing socket "+s+": "+ie );
-                                }*/
                             }
 
                         } catch( IOException ie ) {
