@@ -102,7 +102,7 @@ public class Cliente {
                 }
             }
 
-            // Envia a mensagem, com o estado e o id, para o servidor
+            // Envia a mensagem
             buffer.clear();
             buffer.put(message.getBytes());
             buffer.flip(); // Como o buffer.put() coloca dados no buffer como buffer.read() é preciso dar flip
@@ -110,7 +110,7 @@ public class Cliente {
 
             // Receber a mensagem do servidor
             // Mensagem do tipo: Texto + " " + estado
-            processInput();
+            //processInput();
         }
 
         catch(IOException ie){
@@ -134,19 +134,41 @@ public class Cliente {
     // Método principal do objecto
     public void run() throws IOException {
         // PREENCHER AQUI
-        while (true) {
-            chatBox.requestFocusInWindow();
-            processInput();
+        
+
+        try {
+            while (true) {
+                buffer.clear();
+                int bytesRead = sc.read(buffer);
+                if (bytesRead > 0) {
+                    buffer.flip();
+                    String receivedData = decoder.decode(buffer).toString();
+                    if (buffer.remaining() == 0) {
+                        processInput(receivedData);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        //try {
+        //    String input;
+        //    while (true) {
+        //        buffer.clear();
+        //        int a = sc.read(buffer);
+        //        System.out.println(a);
+        //        if(a > 0){
+        //            buffer.flip();
+        //            input = decoder.decode(buffer).toString();
+        //            printMessage(input);
+        //        }
+        //    }
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
     }
 
-    public void processInput() throws IOException{
-                buffer.clear();
-                sc.read(buffer);
-                buffer.flip();
-                String serverMessage = decoder.decode(buffer).toString().trim();
-
-                // Process the received message
+    public void processInput(String serverMessage) throws IOException{
                 printMessage(serverMessage + "\n");
     }
 
