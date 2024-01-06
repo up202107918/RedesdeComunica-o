@@ -119,56 +119,8 @@ public class ChatClient {
             }
             buffer.clear();
             sc.write(charset.encode(message + '\n'));
-        //}
-        /*catch(IOException ie) {
-            printMessage("Error sending message to server. Ending connection. Please retart program.\n");
-            try{
-                sc.close();
-            }
-            catch(IOException ie2) { 
-                printMessage("Closing Socket Error.\n"); 
-            }
-        }
-        catch (Exception e) {
-            // Handle other exceptions
-            printMessage("An unexpected error occurred. Ending connection. Please restart the program.\n");
-            try {
-                sc.close();
-            } 
-            catch (IOException e2) {
-                printMessage("Error closing socket.\n");
-            }
-        }*/
     }
 
-    /*private String friendlierFormat(String message) throws IOException {
-        String ffmessage[] = message.split(" ", 3);  
-        switch (ffmessage[0].replace("\n", "")) {
-          case "MESSAGE":
-            ffmessage[2].replace("\n", "");
-            message = ffmessage[1] + ": " + ffmessage[2];
-            break;
-          case "JOINED":
-            message = ffmessage[1].replace("\n", "") + " joined the room\n";
-            break;
-          case "NEWNICK":
-            ffmessage[2].replace("\n", "");
-            message = ffmessage[1] + ffmessage[2] + '\n';
-            break;
-          case "LEFT":
-            message = ffmessage[1].replace("\n", "") + " left the room\n";
-            break;
-          case "BYE":
-            //message = "Goodbye!\n";
-            frame.dispose();
-            break;
-          case "PRIVATE":
-            ffmessage[2].replace("\n", "");
-            message = ffmessage[1] + " (private message): " + ffmessage[2] + '\n';
-            break;
-        }
-        return message;
-    }*/
     
     private String processResponse(String response) {
         if (response.startsWith("JOINED ")) {
@@ -224,13 +176,12 @@ public class ChatClient {
 
     // Método principal do objecto
     public void run() throws IOException {
-        //state = 0;
         while (true) {
             try {
                 buffer.clear();
                 sc.read(buffer);
                 buffer.flip();
-                printMessage(processResponse(decoder.decode(buffer).toString()));
+                printMessage(processResponse(decoder.decode(buffer).toString().trim()) + "\n");
 
             }
             catch (IOException e) {
